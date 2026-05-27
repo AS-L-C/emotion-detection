@@ -1,6 +1,6 @@
-n_trials: 5
+n_trials: 20
 hpo_epochs: 10
-final_epochs: 20
+final_epochs: 50
 
 criterion: cross_entropy
 monitor_metric: valid_balanced_accuracy

@@ -286,7 +286,7 @@ class CbraModel(nn.Module):
         n_classes,
         n_patches,
         patch_size,
-        p_drop=0.1,
+        p_drop=0.2,
         freeze_backbone_flag=True,
     ):
         super().__init__()
@@ -312,7 +312,10 @@ class CbraModel(nn.Module):
             nn.Linear(self.n_patches * self.patch_size, self.patch_size),
             nn.ELU(),
             nn.Dropout(self.p_drop),
-            nn.Linear(self.patch_size, self.n_classes),
+            nn.Linear(self.patch_size, self.patch_size//2),
+            nn.ELU(),
+            nn.Dropout(self.p_drop),
+            nn.Linear(self.patch_size//2, self.n_classes),
         )
 
     def freeze_backbone(self, freeze_backbone_flag):

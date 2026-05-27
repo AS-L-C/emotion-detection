@@ -9,9 +9,9 @@ pip:
   - tqdm
   - ipywidgets
   - jupyter
-  - huggingface_hub==0.36.2
-  - tokenizers==0.21.4
-  - transformers==4.53.3
+  - huggingface_hub
+  - tokenizers
+  - transformers
   - datasets
   - einops
   - accelerate
@@ -32,12 +32,12 @@ pip:
 
 torch:
   cuda: true
-  cuda_index_url: https://download.pytorch.org/whl/cu118
+  cuda_index_url:  https://download.pytorch.org/whl/cu128
   minimum_version: 2.4.1
   packages:
-    - torch==2.4.1+cu118
-    - torchvision==0.19.1+cu118
-    - torchaudio==2.4.1+cu118
+    - torch
+    - torchvision
+    - torchaudio
 
 #git:
 #  repos:
