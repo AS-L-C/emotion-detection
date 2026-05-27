@@ -111,6 +111,27 @@ emotion-detection/
         └── pretrained_weights/
             └── pretrained_weights.pth
 ```
+### Running Inference with Fine-Tuned Models
+
+To run inference using the fine-tuned models without re-running hyperparameter optimization or training, download the trained model folders from:
+
+```text
+emotion-classification-models/trained_models/
+```
+Then place the folders inside:
+```text
+emotion-detection/results/models/
+```
+
+The resulting structure should look like this:
+```text
+emotion-detection/
+└── results/
+    └── models/
+        ├── cbramod/
+        ├── reve/
+        └── unishape/
+```
 
 ## Running on Google Colab
 
