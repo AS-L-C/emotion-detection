@@ -134,19 +134,6 @@ After running the setup cell, execute:
 main_notebook.ipynb
 ```
 
-## Repository Structure
-
-```text
-emotion-detection/
-├── assets/
-│   └── data.npz
-├── code/
-│   ├── main_notebook.ipynb
-│   ├── CBraMod/
-│   └── UniShape/
-└── README.md
-```
-
 ## Notes
 
 - Large model checkpoints and dataset files are stored externally due to file size constraints.
