@@ -93,6 +93,7 @@ def resolve_component_params(
     trial: optuna.Trial,
     component_name: str,
     component_config: Dict[str, Any],
+    HP_OPT: bool = True,
 ) -> Dict[str, Any]:
     params = {}
 
@@ -104,11 +105,14 @@ def resolve_component_params(
     for param_name, search_spec in search_params.items():
         optuna_name = f"{component_name}.{param_name}"
 
-        params[param_name] = suggest_from_config(
-            trial=trial,
-            name=optuna_name,
-            spec=search_spec,
-        )
+        if HP_OPT:
+            params[param_name] = suggest_from_config(
+                trial=trial,
+                name=optuna_name,
+                spec=search_spec,
+            )
+        else:
+            params[param_name] = search_spec["default"]
 
     return params
 
@@ -116,17 +120,20 @@ def resolve_component_params(
 def sample_hyperparameters(
     trial: optuna.Trial,
     config: Dict[str, Any],
+    HP_OPT: bool = True,
 ) -> Dict[str, Any]:
     optimizer_params = resolve_component_params(
         trial=trial,
         component_name="optimizer",
         component_config=config["optimizer"],
+        HP_OPT=HP_OPT,
     )
 
     scheduler_params = resolve_component_params(
         trial=trial,
         component_name="scheduler",
         component_config=config.get("scheduler", {"name": "none"}),
+        HP_OPT=HP_OPT,
     )
 
     return {
@@ -557,130 +564,6 @@ def train_model_for_epochs(
     return model, result, optimizer, scheduler
 
 
-def train_model_for_epochs_old(
-    model: nn.Module,
-    dataloaders: Dict[str, DataLoader],
-    config: Dict[str, Any],
-    hyperparameters: Dict[str, Any],
-    device: torch.device | str,
-    n_epochs: int,
-    trial: Optional[optuna.Trial] = None,
-) -> Tuple[nn.Module, Dict[str, Any], torch.optim.Optimizer, Any]:
-    criterion = build_criterion(config)
-
-    optimizer = build_optimizer(
-        model=model,
-        optimizer_config=config["optimizer"],
-        optimizer_params=hyperparameters["optimizer"],
-    )
-
-    scheduler = build_scheduler(
-        optimizer=optimizer,
-        scheduler_config=config.get("scheduler", {"name": None}),
-        scheduler_params=hyperparameters.get("scheduler", {}),
-    )
-
-    training_config = config.get("training", {})
-    gradient_clip_norm = training_config.get("gradient_clip_norm")
-
-    monitor_metric = config.get("monitor_metric", "valid_balanced_accuracy")
-    direction = config.get("direction", "maximize")
-
-    history = {
-        "train_loss": [],
-        "valid_loss": [],
-        "train_accuracy": [],
-        "valid_accuracy": [],
-        "train_balanced_accuracy": [],
-        "valid_balanced_accuracy": [],
-    }
-
-    best_score = None
-    best_state_dict = None
-    best_epoch = None
-
-    for epoch in range(n_epochs):
-        train_loss = train_one_epoch(
-            model=model,
-            dataloader=dataloaders["train"],
-            optimizer=optimizer,
-            criterion=criterion,
-            device=device,
-            gradient_clip_norm=gradient_clip_norm,
-        )
-
-        current_metrics = eval_model_on_splits(
-            model=model,
-            dataloaders=dataloaders,
-            criterion=criterion,
-            device=device,
-            splits=["train", "valid"],
-        )
-
-        metrics_flat = {
-            "train_loss": float(train_loss),
-            "valid_loss": float(current_metrics["valid"]["loss"]),
-            "train_accuracy": float(current_metrics["train"]["accuracy"]),
-            "valid_accuracy": float(current_metrics["valid"]["accuracy"]),
-            "train_balanced_accuracy": float(
-                current_metrics["train"]["balanced_accuracy"]
-            ),
-            "valid_balanced_accuracy": float(
-                current_metrics["valid"]["balanced_accuracy"]
-            ),
-        }
-
-        for key, value in metrics_flat.items():
-            history[key].append(value)
-
-        current_score = metrics_flat[monitor_metric]
-
-        step_scheduler(
-            scheduler=scheduler,
-            scheduler_config=config.get("scheduler", {"name": "none"}),
-            current_score=current_score,
-        )
-
-        if is_improvement(
-            current_score=current_score,
-            best_score=best_score,
-            direction=direction,
-        ):
-            best_score = current_score
-            best_epoch = epoch
-            best_state_dict = copy.deepcopy(model.state_dict())
-
-        if trial is not None:
-            trial.report(current_score, step=epoch)
-
-            if trial.should_prune():
-                raise optuna.TrialPruned(
-                    f"Trial pruned at epoch {epoch}. "
-                    f"{monitor_metric}={current_score:.6f}"
-                )
-
-    if best_state_dict is not None:
-        model.load_state_dict(best_state_dict)
-
-    final_metrics = eval_model_on_splits(
-        model=model,
-        dataloaders=dataloaders,
-        criterion=criterion,
-        device=device,
-        splits=["train", "valid"],
-    )
-
-    result = {
-        "history": history,
-        "final_metrics": final_metrics,
-        "best_score": best_score,
-        "best_epoch": best_epoch,
-        "monitor_metric": monitor_metric,
-    }
-
-    return model, result, optimizer, scheduler
-
-
 # ============================================================
 # Checkpointing
 # ============================================================
@@ -740,134 +623,144 @@ def load_model_state(
 # ============================================================
 # Main Optuna optimization function
 # ============================================================
-
-
-def optimize_model_with_optuna(
+def optimize_model(
     *,
     model: str,
     dataloaders: Dict[str, DataLoader],
     channels: int,
     data_spec: Any,
     n_classes: int,
+    HP_OPT: bool = True,
     device: torch.device | str,
     home_folder: str | Path = PROJECT_DIR / "results",
     config_path: str | Path = PROJECT_DIR / "configs/train_optuna.yml",
 ) -> Tuple[nn.Module, Dict[str, Any], Dict[str, Any]]:
-    assert model in mods.get_avail_models(), f"Unrecognized model '{model}' "
+    assert model in mods.get_avail_models(), f"Unrecognized model '{model}'"
+
     config = load_config(config_path)
     output_dir = ensure_output_dir(home_folder, model)
 
     hpo_epochs = int(config["hpo_epochs"])
     n_trials = int(config["n_trials"])
+    final_epochs = int(config.get("final_epochs", hpo_epochs))
 
     direction = config.get("direction", "maximize")
     optuna_direction = "maximize" if direction == "maximize" else "minimize"
 
-    pruner = build_pruner(config)
-
-    study = optuna.create_study(
-        direction=optuna_direction,
-        pruner=pruner,
-    )
-
     best_checkpoint_path = output_dir / "best_model.pt"
 
-    def objective(trial: optuna.Trial) -> float:
-        hyperparameters = sample_hyperparameters(
-            trial=trial,
-            config=config,
+    study = None
+    best_trial = None
+    completed_trials = []
+
+    if HP_OPT:
+        pruner = build_pruner(config)
+
+        study = optuna.create_study(
+            direction=optuna_direction,
+            pruner=pruner,
         )
 
-        trial_model = build_model(
-            model_name=model,
-            channels=channels,
-            data_spec=data_spec,
-            n_classes=n_classes,
-            device=device,
-        )
-
-        try:
-            trial_model, result, optimizer, scheduler = train_model_for_epochs(
-                model=trial_model,
-                dataloaders=dataloaders,
-                config=config,
-                hyperparameters=hyperparameters,
-                device=device,
-                n_epochs=hpo_epochs,
+        def objective(trial: optuna.Trial) -> float:
+            hyperparameters = sample_hyperparameters(
                 trial=trial,
+                config=config,
             )
 
-        except optuna.TrialPruned:
-            raise
-
-        final_metrics = result["final_metrics"]
-
-        objective_value = float(result["best_score"])
-
-        trial_metrics = {
-            "train": final_metrics["train"],
-            "valid": final_metrics["valid"],
-            "objective_value": objective_value,
-            "history": result["history"],
-            "best_epoch": result["best_epoch"],
-            "best_score": result["best_score"],
-        }
-
-        save_every_trial = config.get("training", {}).get(
-            "save_every_trial",
-            False,
-        )
-
-        trial_checkpoint_path = output_dir / f"trial_{trial.number:04d}.pt"
-
-        if save_every_trial:
-            save_checkpoint(
-                path=trial_checkpoint_path,
-                model=trial_model,
-                optimizer=optimizer,
-                scheduler=scheduler,
-                epoch=hpo_epochs,
-                hyperparameters=hyperparameters,
-                metrics=trial_metrics,
+            trial_model = build_model(
                 model_name=model,
-                extra={
-                    "trial_number": trial.number,
-                    "channels": channels,
-                    "data_spec": data_spec,
-                    "n_classes": n_classes,
-                },
+                channels=channels,
+                data_spec=data_spec,
+                n_classes=n_classes,
+                device=device,
             )
 
-        trial.set_user_attr("hyperparameters", hyperparameters)
-        trial.set_user_attr("metrics", trial_metrics)
+            try:
+                trial_model, result, optimizer, scheduler = train_model_for_epochs(
+                    model=trial_model,
+                    dataloaders=dataloaders,
+                    config=config,
+                    hyperparameters=hyperparameters,
+                    device=device,
+                    n_epochs=hpo_epochs,
+                    trial=trial,
+                )
 
-        if save_every_trial:
-            trial.set_user_attr("checkpoint_path", str(trial_checkpoint_path))
+            except optuna.TrialPruned:
+                raise
 
-        return objective_value
+            final_metrics = result["final_metrics"]
+            objective_value = float(result["best_score"])
 
-    study.optimize(
-        objective,
-        n_trials=n_trials,
-        n_jobs=1,
-    )
+            trial_metrics = {
+                "train": final_metrics["train"],
+                "valid": final_metrics["valid"],
+                "objective_value": objective_value,
+                "history": result["history"],
+                "best_epoch": result["best_epoch"],
+                "best_score": result["best_score"],
+            }
 
-    completed_trials = [
-        t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE
-    ]
+            save_every_trial = config.get("training", {}).get(
+                "save_every_trial",
+                False,
+            )
 
-    if len(completed_trials) == 0:
-        raise RuntimeError(
-            "No Optuna trials completed successfully. "
-            "All trials may have been pruned or failed. "
-            "Try increasing pruner.n_warmup_steps or pruner.n_startup_trials."
+            trial_checkpoint_path = output_dir / f"trial_{trial.number:04d}.pt"
+
+            if save_every_trial:
+                save_checkpoint(
+                    path=trial_checkpoint_path,
+                    model=trial_model,
+                    optimizer=optimizer,
+                    scheduler=scheduler,
+                    epoch=hpo_epochs,
+                    hyperparameters=hyperparameters,
+                    metrics=trial_metrics,
+                    model_name=model,
+                    extra={
+                        "trial_number": trial.number,
+                        "channels": channels,
+                        "data_spec": data_spec,
+                        "n_classes": n_classes,
+                    },
+                )
+
+            trial.set_user_attr("hyperparameters", hyperparameters)
+            trial.set_user_attr("metrics", trial_metrics)
+
+            if save_every_trial:
+                trial.set_user_attr("checkpoint_path", str(trial_checkpoint_path))
+
+            return objective_value
+
+        study.optimize(
+            objective,
+            n_trials=n_trials,
+            n_jobs=1,
         )
 
-    best_trial = study.best_trial
-    best_hyperparameters = best_trial.user_attrs["hyperparameters"]
+        completed_trials = [
+            t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE
+        ]
 
-    final_epochs = int(config.get("final_epochs", hpo_epochs))
+        if len(completed_trials) == 0:
+            raise RuntimeError(
+                "No Optuna trials completed successfully. "
+                "All trials may have been pruned or failed. "
+                "Try increasing pruner.n_warmup_steps or pruner.n_startup_trials."
+            )
 
+        best_trial = study.best_trial
+        best_hyperparameters = best_trial.user_attrs["hyperparameters"]
+
+    else:
+        print("Skipping hyperparameter optimization since HP_OPT=False")
+        best_hyperparameters = sample_hyperparameters(
+            trial=None,
+            config=config,
+            HP_OPT=HP_OPT,
+        )
     best_model = build_model(
         model_name=model,
         channels=channels,
@@ -876,8 +769,11 @@ def optimize_model_with_optuna(
         device=device,
     )
 
-    # Train final model
-    print("Training model with best hyperparameters set...")
+    if HP_OPT:
+        print("Training model with best hyperparameters set...")
+    else:
+        print("Training model with default hyperparameters...")
+
     best_model, result, optimizer, scheduler = train_model_for_epochs(
         model=best_model,
         dataloaders=dataloaders,
@@ -912,32 +808,47 @@ def optimize_model_with_optuna(
         metrics=metrics,
         model_name=model,
         extra={
-            "best_trial_number": best_trial.number,
-            "best_trial_value": best_trial.value,
+            "best_trial_number": best_trial.number if best_trial is not None else None,
+            "best_trial_value": best_trial.value if best_trial is not None else None,
             "channels": channels,
             "data_spec": data_spec,
             "n_classes": n_classes,
-            "study_direction": optuna_direction,
-            "pruner": config.get("pruner", {"name": "none"}),
+            "study_direction": optuna_direction if HP_OPT else None,
+            "pruner": config.get("pruner", {"name": "none"}) if HP_OPT else None,
             "config": config,
+            "hp_opt": HP_OPT,
         },
     )
 
-    summary = {
-        "best_trial_number": best_trial.number,
-        "best_trial_value": best_trial.value,
-        "best_hyperparameters": best_hyperparameters,
-        "metrics": metrics,
-        "best_checkpoint_path": str(best_checkpoint_path),
-        "n_trials_requested": n_trials,
-        "n_trials_completed": len(completed_trials),
-        "n_trials_pruned": len(
-            [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
-        ),
-        "n_trials_failed": len(
-            [t for t in study.trials if t.state == optuna.trial.TrialState.FAIL]
-        ),
-    }
+    if HP_OPT:
+        summary = {
+            "best_trial_number": best_trial.number,
+            "best_trial_value": best_trial.value,
+            "best_hyperparameters": best_hyperparameters,
+            "metrics": metrics,
+            "best_checkpoint_path": str(best_checkpoint_path),
+            "n_trials_requested": n_trials,
+            "n_trials_completed": len(completed_trials),
+            "n_trials_pruned": len(
+                [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
+            ),
+            "n_trials_failed": len(
+                [t for t in study.trials if t.state == optuna.trial.TrialState.FAIL]
+            ),
+        }
+
+    else:
+        summary = {
+            "best_trial_number": None,
+            "best_trial_value": None,
+            "best_hyperparameters": best_hyperparameters,
+            "metrics": metrics,
+            "best_checkpoint_path": str(best_checkpoint_path),
+            "n_trials_requested": None,
+            "n_trials_completed": None,
+            "n_trials_pruned": None,
+            "n_trials_failed": None,
+        }
 
     save_json(output_dir / "optuna_summary.json", summary)
 

@@ -16,18 +16,20 @@ optimizer:
       type: loguniform
       low: 1.0e-6
       high: 1.0e-3
+      default: 5.0e-4
 
     weight_decay:
       type: loguniform
       low: 1.0e-6
       high: 1.0e-1
+      default: 0.001
 
 scheduler:
   name: reduce_lr_on_plateau
 
   fixed:
     mode: max
-    factor: 0.5
+    factor: 0.1
     min_lr: 1.0e-7
 
   search:
@@ -35,6 +37,7 @@ scheduler:
       type: int
       low: 2
       high: 8
+      default: 2
 
 pruner:
   name: median
@@ -43,5 +46,5 @@ pruner:
   interval_steps: 1
 
 training:
-  gradient_clip_norm: 2.0
+  gradient_clip_norm: 1.0
   save_every_trial: false

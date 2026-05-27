@@ -46,6 +46,7 @@ def get_reve(
     device,
     base=True,
     freeze_backbone_flag=True,
+    apply_input_linear=True,
 ):
     def get_npatches(n_times, sf):
         window_size = 1 * sf
@@ -74,6 +75,7 @@ def get_reve(
         n_classes=n_classes,
         n_patches=n_patches,
         freeze_backbone_flag=freeze_backbone_flag,
+        apply_input_linear=apply_input_linear,
     )
     return Model
 
@@ -232,16 +234,28 @@ class ReveModel(nn.Module):
         n_patches,
         p_drop=0.1,
         freeze_backbone_flag=True,
+        apply_input_linear=False,
     ):
         super().__init__()
+        self.p_drop = p_drop
         self.positions = positions
         self.out_dim = n_channels * n_patches * base_model.embed_dim
-        self.input_projection = nn.Linear(n_channels, n_channels)
+        self.input_projection = (
+            nn.Linear(n_channels, n_channels)
+            if apply_input_linear
+            else nn.Identity(n_channels, n_channels)
+        )
         self.base_model = base_model
         self.output_projection = torch.nn.Sequential(
             torch.nn.Flatten(),
             torch.nn.RMSNorm(self.out_dim),
-            torch.nn.Dropout(p_drop),
+            torch.nn.Dropout(self.p_drop),
+            torch.nn.Linear(self.out_dim, self.out_dim),
+            nn.ELU(),
+            nn.Dropout(self.p_drop),
+            nn.Linear(self.out_dim, self.out_dim),
+            nn.ELU(),
+            nn.Dropout(self.p_drop),
             torch.nn.Linear(self.out_dim, n_classes),
         )
         self.freeze_backbone(freeze_backbone_flag)
