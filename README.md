@@ -149,11 +149,13 @@ Then add and run the following setup cell at the beginning of the notebook:
 %cd /content/emotion-detection/code/
 ```
 
-After running the setup cell, execute:
+After running the setup cell, insert your HF token in the second cell (hf_token="") and run the rest of the notebook:
 
 ```text
 main_notebook.ipynb
 ```
+
+
 
 ## Notes
 
