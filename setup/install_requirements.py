@@ -278,7 +278,7 @@ def install_torch(torch_config):
         print(f"  - {package}")
 
     pip_uninstall("torch", "torchvision", "torchaudio")
-    remove_leftover_torch_files()
+    #remove_leftover_torch_files()
 
     if use_cuda:
         pip_install(*packages, index_url=index_url)
