@@ -1,0 +1,47 @@
+pip:
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - scikit-learn
+  - pyyaml
+  - packaging
+  - tqdm
+  - ipywidgets
+  - jupyter
+  - huggingface_hub==0.36.2
+  - tokenizers==0.21.4
+  - transformers==4.53.3
+  - datasets
+  - einops
+  - accelerate
+  - lightning
+  - torchmetrics
+  - optuna
+  - optuna-integration[pytorch_lightning]
+  - h5py #cbramod
+  - lmdb
+  - mne
+  - ptflops
+  - pyEDFlib
+  - torchinfo
+  - umap_learn
+  - aeon #unishape
+  - fastai
+  - timm
+
+torch:
+  cuda: true
+  cuda_index_url: https://download.pytorch.org/whl/cu118
+  minimum_version: 2.4.1
+  packages:
+    - torch==2.4.1+cu118
+    - torchvision==0.19.1+cu118
+    - torchaudio==2.4.1+cu118
+
+#git:
+#  repos:
+#    - url: https://github.com/wjq-learning/CBraMod.git
+#      branch: main
+#    - url: https://github.com/qianlima-lab/UniShape.git
+#      branch: main
