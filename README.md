@@ -32,7 +32,7 @@ The models are used as follows:
 
 For REVE and CBraMod, the pretrained models are kept frozen and used to extract representations. A classification head is then trained on top of the extracted features.
 
-For UniShape, the model is fine-tuned end-to-end on the emotion dataset.
+For UniShape, the model is fine-tuned end-to-end on the emotion dataset (but keeping the shape extractor fixed).
 
 ## Main Entry Point
 
