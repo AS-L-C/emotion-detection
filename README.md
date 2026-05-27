@@ -2,7 +2,7 @@
 
 This repository explores the use of EEG and time-series foundation models for emotion classification on an EEG emotion dataset.
 
-The project evaluates three foundation models:
+The project supports three foundation models:
 
 - **REVE** — [Paper](https://arxiv.org/pdf/2510.21585)
 - **CBraMod** — [Paper](https://arxiv.org/pdf/2412.07236)
@@ -50,6 +50,19 @@ The notebook performs the following steps:
 4. Trains the model using the best hyperparameter configuration
 5. Computes predictions on the test set
 
+## Prediction Results
+
+Test predictions are provided for the `CBraMod` model trained for 50 epochs on the full training dataset after hyperparameter optimization.
+
+The prediction file is available at:
+
+```text
+emotion-detection/results/test_predictions/cbramod/best_model_predictions.csv
+```
+This repository supports all three foundation models described above. Each model can be run and trained on small datasets, for example, by setting DEBUG = True.
+
+However, due to hardware limitations, only CBraMod was trained on the full dataset. The largest available compute resource was a single NVIDIA H100 GPU. The other models are likely too large to be trained on a single H100, as they produced out-of-memory errors even with very small batch sizes. Therefore, test predictions are provided only for `CBraMod`.
+
 ## Setup
 
 Large files are not stored directly in this repository. They are available in the following Google Drive folder:
@@ -58,42 +71,49 @@ Large files are not stored directly in this repository. They are available in th
 
 After cloning the repository, download the required files and place them in the expected locations.
 
-### Required File Structure
+### Required Files
 
-Place the dataset file here:
+Before running the project, copy the required data and pretrained model files into the expected locations.
 
-```text
-emotion-detection/assets/data.npz
-```
+#### Dataset
 
-Source file:
+Copy:
 
 ```text
 emotion-classification-models/training_test_data/data.npz
 ```
+to:
 
-Place the UniShape checkpoint here:
-
-```text
-emotion-detection/code/UniShape/pretrained_model_ckpt/unishape_checkpoint_finetune.pth
+```
+emotion-detection/assets/data.npz
 ```
 
-Source file:
+#### UniShape checkpoint
 
-```text
+Copy:
+
+```
 emotion-classification-models/base_models/unishape_checkpoint_finetune.pth
 ```
 
-Place the CBraMod pretrained weights here:
+to:
 
-```text
-emotion-detection/code/CBraMod/pretrained_weights/pretrained_weights.pth
+```
+emotion-detection/code/UniShape/pretrained_model_ckpt/unishape_checkpoint_finetune.pth
 ```
 
-Source file:
+#### CBraMod pretrained weights
 
-```text
+Copy:
+
+```
 emotion-classification-models/base_models/pretrained_weights.pth
+```
+
+to:
+
+```
+emotion-detection/code/CBraMod/pretrained_weights/pretrained_weights.pth
 ```
 
 The resulting structure should look like this:
@@ -118,7 +138,9 @@ To run inference using the fine-tuned models without re-running hyperparameter o
 ```text
 emotion-classification-models/trained_models/
 ```
+
 Then place the folders inside:
+
 ```text
 emotion-detection/results/models/
 ```
@@ -135,7 +157,7 @@ emotion-detection/
 
 ## Running on Google Colab
 
-The notebook can be run directly in Google Colab.
+The notebook can be run directly in Google Colab with H100
 
 Open the notebook using the following link:
 
@@ -154,8 +176,6 @@ After running the setup cell, insert your HF token in the second cell (hf_token=
 ```text
 main_notebook.ipynb
 ```
-
-
 
 ## Notes
 
