@@ -875,8 +875,25 @@ def retrieve_best_model(
         n_classes=n_classes,
         device=device,
     )
-    state_dict = torch.load(model_checkpoint, map_location=device)
+    state_dict = torch.load(model_checkpoint, map_location=device, weights_only=False,)
     best_model.load_state_dict(state_dict["model_state_dict"])
     best_model.to(device)
     best_model.eval()
     return best_model, metrics, best_hyperparameters
+
+def save_small_checkpoint(checkpoint_path: str | Path) -> Path:
+    checkpoint_path = Path(checkpoint_path)
+
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False, )
+
+    small_checkpoint = {
+        "model_state_dict": checkpoint["model_state_dict"]
+    }
+
+    small_path = checkpoint_path.with_name(
+        f"{checkpoint_path.stem}_small{checkpoint_path.suffix}"
+    )
+
+    torch.save(small_checkpoint, small_path)
+
+    return small_path
