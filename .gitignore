@@ -1,0 +1,30 @@
+@"
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Large/generated outputs
+results/models/
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.npz
+"@ | Out-File -Encoding utf8 .gitignore

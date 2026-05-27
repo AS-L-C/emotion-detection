@@ -1,0 +1,47 @@
+n_trials: 5
+hpo_epochs: 10
+final_epochs: 20
+
+criterion: cross_entropy
+monitor_metric: valid_balanced_accuracy
+direction: maximize
+
+optimizer:
+  name: adamw
+
+  fixed: {}
+
+  search:
+    lr:
+      type: loguniform
+      low: 1.0e-6
+      high: 1.0e-3
+
+    weight_decay:
+      type: loguniform
+      low: 1.0e-6
+      high: 1.0e-1
+
+scheduler:
+  name: reduce_lr_on_plateau
+
+  fixed:
+    mode: max
+    factor: 0.5
+    min_lr: 1.0e-7
+
+  search:
+    patience:
+      type: int
+      low: 2
+      high: 8
+
+pruner:
+  name: median
+  n_startup_trials: 3
+  n_warmup_steps: 2
+  interval_steps: 1
+
+training:
+  gradient_clip_norm: 2.0
+  save_every_trial: false
