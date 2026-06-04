@@ -3,25 +3,25 @@
   "best_trial_value": 0.2,
   "best_hyperparameters": {
     "optimizer": {
-      "lr": 2.3684307309854666e-05,
-      "weight_decay": 0.0021102727105795586
+      "lr": 6.310143436649944e-06,
+      "weight_decay": 7.115145807851876e-05
     },
     "scheduler": {
       "mode": "max",
       "factor": 0.1,
       "min_lr": 1e-07,
-      "patience": 4
+      "patience": 5
     }
   },
   "metrics": {
     "train": {
-      "loss": 1.8850150108337402,
+      "loss": 1.8916512727737427,
       "accuracy": 0.13333333333333333,
       "balanced_accuracy": 0.16666666666666666,
       "ypred": "[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]"
     },
     "valid": {
-      "loss": 1.8937079906463623,
+      "loss": 1.8914257287979126,
       "accuracy": 0.2,
       "balanced_accuracy": 0.2,
       "ypred": "[0 0 0 0 0]"

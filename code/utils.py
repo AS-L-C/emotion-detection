@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+from dotenv import load_dotenv
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 from transformers import set_seed
 
@@ -177,6 +178,22 @@ def summarize_model_metrics(
     print(f"\nSaved plot to: {plot_path}")
 
     return summary_df, plot_path
+
+
+def get_env(env_var_name, env_path=PROJECT_DIR / ".env"):
+    env_path = Path(env_path)
+
+    if not env_path.exists():
+        raise FileNotFoundError(f"Environment file not found: {env_path}")
+
+    load_dotenv(env_path)
+
+    value = os.getenv(env_var_name)
+
+    if value is None:
+        raise KeyError(f"Environment variable '{env_var_name}' not found in {env_path}")
+    else:
+        return value
 
 
 def _save_summary_plot(
