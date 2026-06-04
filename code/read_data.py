@@ -9,14 +9,14 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 print(PROJECT_DIR)
 
 
-def read(project_dir=PROJECT_DIR):
+def read(project_dir=PROJECT_DIR, SUBTRIAL=False):
     # Define paths
     paths = {}
     paths["repo"] = project_dir
     paths["data"] = paths["repo"] / "assets/data.npz"
     paths["trial_info"] = paths["repo"] / "assets/trial_info_train.csv"
     paths["channels"] = paths["repo"] / "metadata" / "channels.json"
-    paths["results"] = paths["repo"] / "results"
+    paths["results"] = paths["repo"] / ("results" + "_subtrial" if SUBTRIAL else "")
     paths["configs"] = paths["repo"] / "configs" / "models.yml"
 
     # Read eeg data

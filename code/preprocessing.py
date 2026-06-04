@@ -1,6 +1,9 @@
 from math import gcd
+from statistics import mode
 
 import numpy as np
+import torch
+from einops import rearrange, repeat
 from scipy import signal
 from scipy.signal import resample_poly
 
@@ -12,7 +15,9 @@ def preprocess(
     labels,
     channels,
     time_axis=-1,
+    subtrial_size=1,
     DEBUG=False,
+    SUBTRIAL=False,
 ):
     def extract_subset(
         data,
@@ -109,12 +114,83 @@ def preprocess(
         for split in splits:
             if split not in stds:
                 stds[split] = np.nanstd(data[split], axis=time_axis, keepdims=True)
+            if "zscore" in norm_dict:
+                c_scale = scale
+            else:
+                c_scale = scale * stds[split]
             data[split] = np.clip(
-                data[split], -scale * stds[split], scale * stds[split]
+                data[split],
+                -c_scale,
+                c_scale,
             )
+
+    # Extract subtrials
+    trials = {}
+    n_subtrials_per_trial = {}
+    if SUBTRIAL:
+        for split in splits:
+            (
+                data[split],
+                trials[split],
+                n_subtrials_per_trial[split],
+            ) = create_subtrials(
+                data[split],
+                subtrial_samples=subtrial_size * sf,
+            )
+
+    # Get final shape
     _, n_channels, n_times = data["train"].shape
     data_spec = {"n_channels": n_channels, "n_times": n_times, "sf": sf}
-    return data, data_spec, labels, channels
+    return data, data_spec, labels, channels, trials, n_subtrials_per_trial
+
+
+def create_subtrials(x, subtrial_samples):
+    x = torch.tensor(x)
+    n_trials, n_channels, n_times = x.shape
+
+    n_subtrials_per_trial = n_times // subtrial_samples
+    trimmed_len = n_subtrials_per_trial * subtrial_samples
+
+    x = x[:, :, :trimmed_len]
+
+    x = rearrange(
+        x,
+        "trial chan (window time) -> (trial window) chan time",
+        time=subtrial_samples,
+    )
+
+    trials = repeat(
+        torch.arange(n_trials),
+        "trial -> (trial window)",
+        window=n_subtrials_per_trial,
+    )
+    return x.numpy(), trials.numpy(), n_subtrials_per_trial
+
+
+def subtrials2trials(
+    subtrial_predictions,
+    trials,
+    n_subtrials_per_trial,
+    modality="mode",
+):
+    def reduce(y):
+        match modality:
+            case "mode":
+                # print(f"subtrial predictions: {y}")
+                # print(f"trial predictions: {mode(y)}")
+                return mode(y)
+            case _:
+                raise ValueError(f"Unrecognized modality {modality}")
+
+    n_tot_predictions = len(subtrial_predictions)
+    n_trials = n_tot_predictions // n_subtrials_per_trial
+    start = 0
+    trial_predictions = []
+    for t in range(n_trials):
+        stop = start + n_subtrials_per_trial
+        trial_predictions.append(reduce(subtrial_predictions[start:stop]))
+        start = stop
+    return trial_predictions
 
 
 def remap_sig(x, min=-1.0, max=1.0, axis=-1, eps=1e-8):
