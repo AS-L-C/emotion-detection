@@ -180,7 +180,7 @@ The notebook can be run directly in Google Colab with H100
 
 Open the notebook using the following link:
 
-[Open in Google Colab](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/feature/subtrials-support/main/code/main_notebook.ipynb)
+[Open in Google Colab](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/feature%2Fsubtrials-support/code/main_notebook.ipynb)
 
 Then add and run the following setup cell at the beginning of the notebook:
 
