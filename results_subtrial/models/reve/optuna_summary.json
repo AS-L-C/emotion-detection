@@ -1,33 +1,33 @@
 {
-  "best_trial_number": 3,
+  "best_trial_number": 0,
   "best_trial_value": 0.6,
   "best_hyperparameters": {
     "optimizer": {
-      "lr": 0.00023015639750043366,
-      "weight_decay": 5.922944204378871e-06
+      "lr": 6.854256979182e-06,
+      "weight_decay": 1.1226037309856722e-06
     },
     "scheduler": {
       "mode": "max",
       "factor": 0.1,
       "min_lr": 1e-07,
-      "patience": 8
+      "patience": 2
     }
   },
   "metrics": {
     "train": {
-      "loss": 0.2544929087162018,
-      "accuracy": 1.0,
-      "balanced_accuracy": 1.0,
-      "ypred": "[3 2 5 0 4 4 2 1 4 0 1 3 1 3 5]"
+      "loss": 1.6731765667597454,
+      "accuracy": 0.4666666666666667,
+      "balanced_accuracy": 0.4166666666666667,
+      "ypred": "[4 4 3 3 3 4 3 3 3 3 0 3 4 3 1]"
     },
     "valid": {
-      "loss": 1.8076953887939453,
-      "accuracy": 0.4,
-      "balanced_accuracy": 0.4,
-      "ypred": "[4 5 5 5 3]"
+      "loss": 1.7701530456542969,
+      "accuracy": 0.2,
+      "balanced_accuracy": 0.2,
+      "ypred": "[3 3 0 3 3]"
     },
-    "best_epoch": 2,
-    "best_score": 0.4
+    "best_epoch": 0,
+    "best_score": 0.2
   },
   "best_checkpoint_path": "C:\\Users\\salat\\Alessandro Salatiello - Alljoined\\results_subtrial\\models\\reve\\best_model.pt",
   "n_trials_requested": 5,

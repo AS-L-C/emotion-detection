@@ -1,33 +1,33 @@
 {
-  "best_trial_number": 0,
+  "best_trial_number": 1,
   "best_trial_value": 0.4,
   "best_hyperparameters": {
     "optimizer": {
-      "lr": 0.0002699033468937073,
-      "weight_decay": 0.00010355375126725419
+      "lr": 9.688370499905389e-05,
+      "weight_decay": 6.003824803299939e-06
     },
     "scheduler": {
       "mode": "max",
       "factor": 0.1,
       "min_lr": 1e-07,
-      "patience": 7
+      "patience": 5
     }
   },
   "metrics": {
     "train": {
-      "loss": 1.7910882234573364,
+      "loss": 1.924703598022461,
       "accuracy": 0.13333333333333333,
       "balanced_accuracy": 0.16666666666666666,
       "ypred": "[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]"
     },
     "valid": {
-      "loss": 1.9270896911621094,
-      "accuracy": 0.2,
-      "balanced_accuracy": 0.2,
-      "ypred": "[0 0 0 0 0]"
+      "loss": 1.76052987575531,
+      "accuracy": 0.4,
+      "balanced_accuracy": 0.4,
+      "ypred": "[0 0 5 0 0]"
     },
     "best_epoch": 0,
-    "best_score": 0.2
+    "best_score": 0.4
   },
   "best_checkpoint_path": "C:\\Users\\salat\\Alessandro Salatiello - Alljoined\\results_subtrial\\models\\unishape\\best_model.pt",
   "n_trials_requested": 5,

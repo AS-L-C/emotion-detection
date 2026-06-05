@@ -3,35 +3,35 @@
   "best_trial_value": 0.2,
   "best_hyperparameters": {
     "optimizer": {
-      "lr": 5.851038789744423e-06,
-      "weight_decay": 2.955147440894978e-05
+      "lr": 3.116295161812198e-05,
+      "weight_decay": 0.000966249021454191
     },
     "scheduler": {
       "mode": "max",
       "factor": 0.1,
       "min_lr": 1e-07,
-      "patience": 6
+      "patience": 7
     }
   },
   "metrics": {
     "train": {
-      "loss": 1.7849535942077637,
-      "accuracy": 0.2,
-      "balanced_accuracy": 0.16666666666666666,
-      "ypred": "[1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]"
+      "loss": 1.7810087601343791,
+      "accuracy": 0.13333333333333333,
+      "balanced_accuracy": 0.1111111111111111,
+      "ypred": "[4 4 4 3 4 4 4 4 4 4 4 4 4 4 4]"
     },
     "valid": {
-      "loss": 1.7932802438735962,
+      "loss": 1.772276520729065,
       "accuracy": 0.2,
       "balanced_accuracy": 0.2,
-      "ypred": "[1 1 1 1 1]"
+      "ypred": "[4 4 4 4 4]"
     },
     "best_epoch": 0,
     "best_score": 0.2
   },
   "best_checkpoint_path": "C:\\Users\\salat\\Alessandro Salatiello - Alljoined\\results_subtrial\\models\\cbramod\\best_model.pt",
   "n_trials_requested": 5,
-  "n_trials_completed": 5,
-  "n_trials_pruned": 0,
+  "n_trials_completed": 4,
+  "n_trials_pruned": 1,
   "n_trials_failed": 0
 }

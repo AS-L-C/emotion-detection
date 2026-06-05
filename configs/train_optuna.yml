@@ -1,4 +1,4 @@
-n_trials: 20
+n_trials: 5
 hpo_epochs: 10
 final_epochs: 50
 
