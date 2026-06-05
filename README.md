@@ -203,17 +203,26 @@ defines model-specific settings, including the preprocessing pipeline associated
 - [train_optuna.yml](https://github.com/AS-L-C/emotion-detection/blob/feature/subtrials-support/configs/train_optuna.yml)
 defines the training and hyperparameter optimization settings.
 
-## Modes and Configuration Flags
+## Execution Modes
 
-The notebook behavior is controlled by the following flags:
+The notebook behavior is controlled by the following flags and variables, which are defined in the first two notebook cells.
 
-| Flag | Location | Description |
-|--------|----------|-------------|
-| `USE_TORCH_241_CONFIG` | First cell | Selects the environment configuration. Set to `True` for NVIDIA T500 GPUs and `False` for NVIDIA A100/H100 GPUs. |
-| `TRAINING` | Second cell | If `True`, trains the model. If `False`, only evaluates previously trained models (if available). |
-| `HP_OPT` | Second cell | If `True`, performs hyperparameter optimization. If `False`, uses the default hyperparameter configuration. |
-| `DEBUG` | Second cell | If `True`, runs on a small subset of the data (limited trials, channels, and time points) for faster debugging. |
-| `SUBTRIAL` | Second cell | If `True`, enables subtrial mode, partitioning each trial into subtrials of `subtrial_size` seconds. |
+| Setting | Cell | Description |
+|----------|------|-------------|
+| `USE_TORCH_241_CONFIG` | 1 | Selects the environment configuration. Set to `True` for NVIDIA T500 GPUs and `False` for NVIDIA A100/H100 GPUs. |
+| `TRAINING` | 2 | If `True`, trains the selected model(s). If `False`, only evaluates previously trained models (if available). |
+| `HP_OPT` | 2 | If `True`, runs hyperparameter optimization with Optuna. If `False`, uses the default hyperparameters specified in the configuration files. |
+| `DEBUG` | 2 | If `True`, runs on a small subset of the data for rapid testing and debugging by selecting only the first few trials, channels, and time samples. |
+| `SUBTRIAL` | 2 | If `True`, partitions each trial into subtrials of length `subtrial_size` seconds before training and evaluation. |
+| `SELECTED_MODELS` | 2 | List of models to train and/or evaluate. Available options are `"cbramod"`, `"reve"`, and `"unishape"`. Multiple models can be specified. |
+
+### Example
+
+```python
+SELECTED_MODELS = ["cbramod"]                  # Single model
+SELECTED_MODELS = ["cbramod", "unishape"]      # Multiple models
+```
+
 ## Notes
 
 - Large model checkpoints and dataset files are stored externally due to file size constraints.
