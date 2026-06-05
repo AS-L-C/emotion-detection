@@ -38,9 +38,7 @@ For UniShape, the model is fine-tuned end-to-end on the emotion dataset (but kee
 
 The main workflow is implemented in:
 
-```text
-code/main_notebook.ipynb
-```
+[code/main_notebook.ipynb](https://github.com/AS-L-C/emotion-detection/blob/feature/subtrials-support/code/main_notebook.ipynb)
 
 The notebook performs the following steps:
 
@@ -61,10 +59,13 @@ emotion-detection/results/test_predictions/cbramod/best_model_predictions.csv
 ```
 This repository supports all three foundation models described above. Each model can be run and trained on small datasets, for example, by setting DEBUG = True.
 
+![CBraModTrainingResults](results/plots/model_summary_plot.png)
+
 Due to hardware limitations, only `CBraMod` could be trained on the full dataset without subdividing the original trials. The largest available compute resource was a single NVIDIA H100 GPU, and larger models such as `REVE` exceeded its memory capacity, producing out-of-memory errors even with very small batch sizes. Consequently, test-set predictions are reported only for `CBraMod`. `UniShape` was successfully trained on the full dataset only after partitioning each trial into 8-second subtrials; however, despite this adaptation, its performance remained inferior to that of `CBraMod`.
 
-## Setup
-
+<details>
+<summary><h2>Setup</h2></summary>
+    
 #### 1. Download Required Files
 
 Large files are not stored directly in this repository. They can be downloaded from the following Google Drive folder:
@@ -173,6 +174,7 @@ Two environment configurations are provided:
 - `USE_TORCH_241_CONFIG=False`: Compatible with NVIDIA A100 and H100 GPUs.
 
 The desired configuration can be selected by setting the `USE_TORCH_241_CONFIG` flag in the first cell of the notebook.
+</details>
 
 ## Running on Google Colab
 
@@ -201,6 +203,17 @@ defines model-specific settings, including the preprocessing pipeline associated
 - [train_optuna.yml](https://github.com/AS-L-C/emotion-detection/blob/feature/subtrials-support/configs/train_optuna.yml)
 defines the training and hyperparameter optimization settings.
 
+## Modes and Configuration Flags
+
+The notebook behavior is controlled by the following flags:
+
+| Flag | Location | Description |
+|--------|----------|-------------|
+| `USE_TORCH_241_CONFIG` | First cell | Selects the environment configuration. Set to `True` for NVIDIA T500 GPUs and `False` for NVIDIA A100/H100 GPUs. |
+| `TRAINING` | Second cell | If `True`, trains the model. If `False`, only evaluates previously trained models (if available). |
+| `HP_OPT` | Second cell | If `True`, performs hyperparameter optimization. If `False`, uses the default hyperparameter configuration. |
+| `DEBUG` | Second cell | If `True`, runs on a small subset of the data (limited trials, channels, and time points) for faster debugging. |
+| `SUBTRIAL` | Second cell | If `True`, enables subtrial mode, partitioning each trial into subtrials of `subtrial_size` seconds. |
 ## Notes
 
 - Large model checkpoints and dataset files are stored externally due to file size constraints.
