@@ -59,7 +59,7 @@ emotion-detection/results/test_predictions/cbramod/best_model_predictions.csv
 ```
 This repository supports all three foundation models described above. Each model can be run and trained on small datasets, for example, by setting DEBUG = True.
 
-![CBraModTrainingResults](results/plots/model_summary_plot.png)
+![CBraModTrainingResults](results/plots/model_summary_plot_cbramod.png)
 
 Due to hardware limitations, only `CBraMod` could be trained on the full dataset without subdividing the original trials. The largest available compute resource was a single NVIDIA H100 GPU, and larger models such as `REVE` exceeded its memory capacity, producing out-of-memory errors even with very small batch sizes. Consequently, test-set predictions are reported only for `CBraMod`. `UniShape` was successfully trained on the full dataset only after partitioning each trial into 8-second subtrials; however, despite this adaptation, its performance remained inferior to that of `CBraMod`.
 
