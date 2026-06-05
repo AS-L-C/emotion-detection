@@ -1,6 +1,6 @@
 # Emotion Detection
 
-This repository explores the use of EEG and time-series foundation models for emotion classification on an EEG emotion dataset.
+This repository explores the use of EEG and time-series foundation models for EEG classification.
 
 The project supports three foundation models:
 
@@ -46,9 +46,9 @@ The notebook performs the following steps:
 
 1. Sets up the environment
 2. Preprocesses the dataset using model-specific pipelines based on the corresponding papers
-3. Optionally runs hyperparameter optimization using Optuna
+3. Runs hyperparameter optimization using Optuna
 4. Trains the model using the best hyperparameter configuration
-5. Computes predictions on the test set
+5. Computes and saves predictions on the test set
 
 ## Prediction Results
 
@@ -61,15 +61,25 @@ emotion-detection/results/test_predictions/cbramod/best_model_predictions.csv
 ```
 This repository supports all three foundation models described above. Each model can be run and trained on small datasets, for example, by setting DEBUG = True.
 
-However, due to hardware limitations, only CBraMod was trained on the full dataset. The largest available compute resource was a single NVIDIA H100 GPU. The other models are likely too large to be trained on a single H100, as they produced out-of-memory errors even with very small batch sizes. Therefore, test predictions are provided only for `CBraMod`.
+Due to hardware limitations, only `CBraMod` could be trained on the full dataset without subdividing the original trials. The largest available compute resource was a single NVIDIA H100 GPU, and larger models such as `REVE` exceeded its memory capacity, producing out-of-memory errors even with very small batch sizes. Consequently, test-set predictions are reported only for `CBraMod`. `UniShape` was successfully trained on the full dataset only after partitioning each trial into 8-second subtrials; however, despite this adaptation, its performance remained inferior to that of `CBraMod`.
 
 ## Setup
 
-Large files are not stored directly in this repository. They are available in the following Google Drive folder:
+#### 1. Download Required Files
+
+Large files are not stored directly in this repository. They can be downloaded from the following Google Drive folder:
 
 [emotion-classification-models](https://drive.google.com/drive/folders/1HVcNsKlzagZ7cHQxvlvWg6poHp03Vbgn?usp=sharing)
 
-After cloning the repository, download the required files and place them in the expected locations.
+After cloning the repository, download the required files and place them in the locations specified in the `Required Files` section below.
+
+#### 2. Create a .env File
+
+Create a .env file in the project root directory and add your Hugging Face token:
+
+HF_TOKEN="your_huggingface_token"
+
+Replace "your_huggingface_token" with your personal Hugging Face access token.
 
 ### Required Files
 
@@ -155,6 +165,15 @@ emotion-detection/
         └── unishape/
 ```
 
+### Environment Setup
+
+Two environment configurations are provided:
+
+- `USE_TORCH_241_CONFIG=True`: Compatible with NVIDIA T500 GPUs.
+- `USE_TORCH_241_CONFIG=False`: Compatible with NVIDIA A100 and H100 GPUs.
+
+The desired configuration can be selected by setting the `USE_TORCH_241_CONFIG` flag in the first cell of the notebook.
+
 ## Running on Google Colab
 
 The notebook can be run directly in Google Colab with H100
@@ -171,11 +190,16 @@ Then add and run the following setup cell at the beginning of the notebook:
 %cd /content/emotion-detection/code/
 ```
 
-After running the setup cell, insert your HF token in the second cell (hf_token="") and run the rest of the notebook:
+After running the setup cell, follow the setup instructions specified above.
 
-```text
-main_notebook.ipynb
-```
+## Configuration files
+The notebook reads two main configuration files located in the `configs` directory:
+
+- [models.yml](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/main/configs/models.yml)
+defines model-specific settings, including the preprocessing pipeline associated with each model.
+
+- [train_optuna.yml](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/main/configs/train_optuna.yml)
+defines the training and hyperparameter optimization settings.
 
 ## Notes
 
