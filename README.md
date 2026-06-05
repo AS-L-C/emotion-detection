@@ -195,10 +195,10 @@ After running the setup cell, follow the setup instructions specified above.
 ## Configuration files
 The notebook reads two main configuration files located in the `configs` directory:
 
-- [models.yml](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/feature/subtrials-support/main/configs/models.yml)
+- [models.yml](https://github.com/AS-L-C/emotion-detection/blob/feature/subtrials-support/configs/models.yml)
 defines model-specific settings, including the preprocessing pipeline associated with each model.
 
-- [train_optuna.yml](https://colab.research.google.com/github/AS-L-C/emotion-detection/blob/feature/subtrials-support/main/configs/train_optuna.yml)
+- [train_optuna.yml](https://github.com/AS-L-C/emotion-detection/blob/feature/subtrials-support/configs/train_optuna.yml)
 defines the training and hyperparameter optimization settings.
 
 ## Notes
